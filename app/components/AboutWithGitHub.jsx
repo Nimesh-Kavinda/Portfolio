@@ -60,15 +60,21 @@ const About = ({ isDarkMode, setDarkMode }) => {
 
           </motion.div>
           <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.8, duration: 0.8 }}
             className="flex-1"
           >
-            <p className="mb-10 max-w-2xl font-Ovo pt-5">
-              I’m Nimesh Kavinda, a passionate full-stack web developer from Sri
-              Lanka, dedicated to building high-performance, user-friendly
-              websites and web applications. With a strong foundation in PHP,
+            <p className="mb-10 max-w-2xl font-Ovo">
+              I am a experienced Full Stack Developer with over a decade of
+              professional expertise. Throughout my career, I've had the
+              privilege of collaborating with prestigious organizations,
+              contributing to their success and growth.
+            </p>
+
+            <p className="mb-10 max-w-2xl font-Ovo">
+              My passion lies in crafting modern, user-centric web applications
+              using cutting-edge technologies. With proficiency in PHP,
               Laravel, React, and JavaScript, I specialize in creating
               responsive interfaces, seamless backend integration, and dynamic
               web experiences. I'm always exploring new technologies—from
@@ -133,6 +139,32 @@ const About = ({ isDarkMode, setDarkMode }) => {
                 </motion.li>
               ))}
             </motion.ul>
+            <motion.h4
+              initial={{ y: 20, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              transition={{ duration: 1.3, delay: 0.5 }}
+              className="my-6 text-gray-700 font-Ovo dark:text-white/80"
+            >
+              Tools I use
+            </motion.h4>
+
+            <motion.ul
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ delay: 1.5, duration: 0.6 }}
+              className="flex items-center gap-3 sm:gap-5"
+            >
+              {toolsData.map((tool, index) => (
+                <motion.li
+                  whileHover={{ scale: 1.1 }}
+                  className="flex items-center justify-center w-12 sm:w-14 
+                            aspect-square border border-gray-400 rounded-lg cursor-pointer hover:-translate-y-1 duration-500"
+                  key={index}
+                >
+                  <Image src={tool} alt="tool" className="w-5 sm:w-7" />
+                </motion.li>
+              ))}
+            </motion.ul>
 
             {/* GitHub Stats Quick View */}
             {githubProfile && (
@@ -140,7 +172,7 @@ const About = ({ isDarkMode, setDarkMode }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.3 }}
-                className="mt-8 mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4"
+                className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4"
               >
                 <div className="text-center">
                   <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
@@ -168,33 +200,6 @@ const About = ({ isDarkMode, setDarkMode }) => {
                 </div>
               </motion.div>
             )}
-
-            <motion.h4
-              initial={{ y: 20, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              transition={{ duration: 1.3, delay: 0.5 }}
-              className="my-6 text-gray-700 font-Ovo dark:text-white/80"
-            >
-              Tools I use
-            </motion.h4>
-
-            <motion.ul
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ delay: 1.5, duration: 0.6 }}
-              className="flex items-center gap-3 sm:gap-5"
-            >
-              {toolsData.map((tool, index) => (
-                <motion.li
-                  whileHover={{ scale: 1.1 }}
-                  className="flex items-center justify-center w-12 sm:w-14 
-                            aspect-square border border-gray-400 rounded-lg cursor-pointer hover:-translate-y-1 duration-500"
-                  key={index}
-                >
-                  <Image src={tool} alt="tool" className="w-5 sm:w-7" />
-                </motion.li>
-              ))}
-            </motion.ul>
           </motion.div>
         </motion.div>
       </motion.div>

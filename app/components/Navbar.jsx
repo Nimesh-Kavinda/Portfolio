@@ -52,6 +52,7 @@ const Navbar = ({ isDarkMode, setDarkMode }) => {
                     <li><a className="font-Ovo text-lg sm:text-xl" href="#about">About</a></li>
                     <li><a className="font-Ovo text-lg sm:text-xl" href="#service">Services</a></li>
                     <li><a className="font-Ovo text-lg sm:text-xl" href="#work">Work</a></li>
+                    <li><a className="font-Ovo text-lg sm:text-xl" href="#github-repos">GitHub</a></li>
                     <li><a className="font-Ovo text-lg sm:text-xl" href="#contact">Contact</a></li>
                 </ul>
 
@@ -82,6 +83,7 @@ const Navbar = ({ isDarkMode, setDarkMode }) => {
                     <li><a className="font-Ovo text-lg" onClick={closeMenu} href="#about">About</a></li>
                     <li><a className="font-Ovo text-lg" onClick={closeMenu} href="#service">Services</a></li>
                     <li><a className="font-Ovo text-lg" onClick={closeMenu} href="#work">Work</a></li>
+                    <li><a className="font-Ovo text-lg" onClick={closeMenu} href="#github-repos">GitHub</a></li>
                     <li><a className="font-Ovo text-lg" onClick={closeMenu} href="#contact">Contact</a></li>
                 </ul>
             </nav>
