@@ -102,7 +102,7 @@ const Contact = ({ isDarkMode, setDarkMode }) => {
                 <h3 className="font-semibold text-base sm:text-lg mb-1">Email</h3>
                 <a
                   href="mailto:${contactInfo.email}?subject=Inquiry&body=Hello"
-                  className="text-xs sm:text-sm md:text-base break-all text-gray-800 dark:text-blue-400 hover:underline"
+                  className="text-xs sm:text-sm md:text-base break-all text-gray-800 dark:text-white-400 hover:underline"
                 >
                   {contactInfo.email}
                 </a>
