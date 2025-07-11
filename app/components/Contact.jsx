@@ -95,7 +95,7 @@ const Contact = ({ isDarkMode, setDarkMode }) => {
                     strokeWidth={2}
                     d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25H4.5a2.25 2.25 0 01-2.25-2.25V6.75M21.75 6.75L12 13.5 2.25 6.75"
                   />
-                </svg>
+                </svg>  
               </div>
 
               <div className="flex-1">
