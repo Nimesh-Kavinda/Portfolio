@@ -97,7 +97,7 @@ const Contact = ({ isDarkMode, setDarkMode }) => {
                   />
                 </svg>  
               </div>
-
+ 
               <div className="flex-1">
                 <h3 className="font-semibold text-base sm:text-lg mb-1">Email</h3>
                 <a
