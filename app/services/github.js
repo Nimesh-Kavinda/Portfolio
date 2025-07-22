@@ -10,11 +10,13 @@ export const fetchGitHubProfile = async () => {
   try {
     const response = await fetch(`${baseUrl}/users/${username}`);
     if (!response.ok) {
-      throw new Error(`Failed to fetch profile: ${response.status}`);
+      throw new Error(`Failed to fetch profile: ${response.status} ${response.statusText}`);
     }
-    return await response.json();
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error('Error fetching GitHub profile:', error);
+    console.error('Error fetching GitHub profile:', error.message);
+    // Return fallback data instead of logging and continuing with null
     return GITHUB_CONFIG.fallback;
   }
 };
@@ -30,11 +32,12 @@ export const fetchGitHubRepositories = async (page = 1, perPage = 100) => {
       `${baseUrl}/users/${username}/repos?page=${page}&per_page=${perPage}&sort=${settings.sortBy}&direction=${settings.sortDirection}`
     );
     if (!response.ok) {
-      throw new Error(`Failed to fetch repositories: ${response.status}`);
+      throw new Error(`Failed to fetch repositories: ${response.status} ${response.statusText}`);
     }
-    return await response.json();
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error('Error fetching GitHub repositories:', error);
+    console.error('Error fetching GitHub repositories:', error.message);
     return [];
   }
 };
@@ -47,10 +50,11 @@ export const fetchAllGitHubRepositories = async () => {
     let allRepos = [];
     let page = 1;
     let hasMore = true;
+    const maxPages = 10; // Safety limit to prevent infinite loops
 
-    while (hasMore) {
+    while (hasMore && page <= maxPages) {
       const repos = await fetchGitHubRepositories(page, 100);
-      if (repos.length === 0) {
+      if (!Array.isArray(repos) || repos.length === 0) {
         hasMore = false;
       } else {
         allRepos = [...allRepos, ...repos];
@@ -63,9 +67,10 @@ export const fetchAllGitHubRepositories = async () => {
       }
     }
 
+    console.log(`Loaded ${allRepos.length} repositories across ${page - 1} pages`);
     return allRepos;
   } catch (error) {
-    console.error('Error fetching all GitHub repositories:', error);
+    console.error('Error fetching all GitHub repositories:', error.message);
     return [];
   }
 };

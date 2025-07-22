@@ -20,7 +20,7 @@ const Contact = ({ isDarkMode, setDarkMode }) => {
         whileInView={{ opacity: 1 }}
         transition={{ duration: 1 }}
         id="contact"
-        className="w-full px-4 sm:px-8 md:px-12 py-8 sm:py-10 scroll-mt-20 bg-[url(''/footer-bg-color.png'')] 
+        className="w-full px-4 sm:px-8 md:px-12 py-8 sm:py-10 scroll-mt-20 bg-[url('/footer-bg-color.png')] 
          bg-no-repeat bg-center bg-[length:90%_auto] 
          dark:bg-none"
       >

@@ -17,18 +17,26 @@ const GitHubRepos = ({ isDarkMode }) => {
         setLoading(true);
         // Fetch all repositories at once
         const reposData = await fetchAllGitHubRepositories();
+        
+        if (!Array.isArray(reposData)) {
+          console.warn('Invalid repository data received:', reposData);
+          setRepos([]);
+          return;
+        }
+
         // Filter out forks and private repos based on config, sort by stars and recent activity
         const filteredRepos = reposData
-          .filter(repo => !repo.private && (GITHUB_CONFIG.settings.includeForks || !repo.fork))
+          .filter(repo => repo && !repo.private && (GITHUB_CONFIG.settings.includeForks || !repo.fork))
           .sort((a, b) => {
             // Prioritize repos with more stars and recent updates
-            const scoreA = a.stargazers_count * 3 + (new Date(a.updated_at).getTime() / 1000000000);
-            const scoreB = b.stargazers_count * 3 + (new Date(b.updated_at).getTime() / 1000000000);
+            const scoreA = (a.stargazers_count || 0) * 3 + (new Date(a.updated_at || 0).getTime() / 1000000000);
+            const scoreB = (b.stargazers_count || 0) * 3 + (new Date(b.updated_at || 0).getTime() / 1000000000);
             return scoreB - scoreA;
           });
         setRepos(filteredRepos);
       } catch (error) {
         console.error('Error loading repositories:', error);
+        setRepos([]);
       } finally {
         setLoading(false);
       }
@@ -58,12 +66,19 @@ const GitHubRepos = ({ isDarkMode }) => {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
+    if (!dateString) return 'Unknown date';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Invalid date';
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    } catch (error) {
+      console.warn('Error formatting date:', error);
+      return 'Date unavailable';
+    }
   };
 
   if (loading) {
@@ -121,7 +136,8 @@ const GitHubRepos = ({ isDarkMode }) => {
             key={repo.id}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 * index }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.1 * Math.min(index, 6) }}
             whileHover={{ y: -5 }}
             className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300"
           >
@@ -129,12 +145,16 @@ const GitHubRepos = ({ isDarkMode }) => {
             <div className="relative h-48 w-full bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-700 dark:to-gray-600 overflow-hidden">
               <Image
                 src={getRepoImage(repo)}
-                alt={repo.name}
+                alt={repo.name || 'Repository'}
                 width={400}
                 height={200}
                 className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                 onError={(e) => {
+                  console.warn(`Failed to load image for repo: ${repo.name}. Using fallback.`);
                   e.target.src = '/assets/project-icon.png';
+                }}
+                onLoad={() => {
+                  // Optional: Success callback
                 }}
               />
               <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300"></div>
@@ -151,7 +171,7 @@ const GitHubRepos = ({ isDarkMode }) => {
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
                 <h3 className="text-xl font-semibold dark:text-white truncate">
-                  {repo.name.replace(/-/g, ' ').replace(/_/g, ' ')}
+                  {(repo.name || 'Unnamed Repository').replace(/-/g, ' ').replace(/_/g, ' ')}
                 </h3>
               </div>
 

@@ -88,6 +88,7 @@ const About = ({ isDarkMode, setDarkMode }) => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
                 className="mb-10 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border-l-4 border-blue-500"
               >
@@ -101,6 +102,10 @@ const About = ({ isDarkMode, setDarkMode }) => {
                     width={24}
                     height={24}
                     className="rounded-full"
+                    onError={(e) => {
+                      console.warn('Failed to load GitHub avatar. Using fallback.');
+                      e.target.src = '/assets/user-image.jpg';
+                    }}
                   />
                   <span className="text-sm text-gray-600 dark:text-gray-400">
                     - From my GitHub profile
@@ -171,6 +176,7 @@ const About = ({ isDarkMode, setDarkMode }) => {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.3 }}
                 className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4"
               >

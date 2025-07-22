@@ -1,7 +1,13 @@
 // Default repository images for different languages/types
 const getRepoImage = (repo) => {
+  // Validate repo input
+  if (!repo || typeof repo !== 'object') {
+    console.warn('Invalid repo object passed to getRepoImage:', repo);
+    return '/assets/project-icon.png';
+  }
+
   // Check for specific project matches first
-  const repoName = repo.name.toLowerCase();
+  const repoName = repo.name ? repo.name.toLowerCase() : '';
   const topics = repo.topics || [];
   
   // Specific project mappings based on common names
