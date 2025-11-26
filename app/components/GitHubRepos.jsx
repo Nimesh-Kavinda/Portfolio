@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { fetchAllGitHubRepositories } from '../services/github';
@@ -10,6 +10,7 @@ import getRepoImage from '../utils/repoImages';
 const GitHubRepos = ({ isDarkMode }) => {
   const [repos, setRepos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [imageErrors, setImageErrors] = useState({});
 
   useEffect(() => {
     const loadRepositories = async () => {
@@ -17,7 +18,7 @@ const GitHubRepos = ({ isDarkMode }) => {
         setLoading(true);
         // Fetch all repositories at once
         const reposData = await fetchAllGitHubRepositories();
-        
+
         if (!Array.isArray(reposData)) {
           console.warn('Invalid repository data received:', reposData);
           setRepos([]);
@@ -26,14 +27,25 @@ const GitHubRepos = ({ isDarkMode }) => {
 
         // Filter out forks and private repos based on config, sort by stars and recent activity
         const filteredRepos = reposData
-          .filter(repo => repo && !repo.private && (GITHUB_CONFIG.settings.includeForks || !repo.fork))
+          .filter(
+            (repo) =>
+              repo &&
+              !repo.private &&
+              (GITHUB_CONFIG.settings.includeForks || !repo.fork)
+          )
           .sort((a, b) => {
             // Prioritize repos with more stars and recent updates
-            const scoreA = (a.stargazers_count || 0) * 3 + (new Date(a.updated_at || 0).getTime() / 1000000000);
-            const scoreB = (b.stargazers_count || 0) * 3 + (new Date(b.updated_at || 0).getTime() / 1000000000);
+            const scoreA =
+              (a.stargazers_count || 0) * 3 +
+              new Date(a.updated_at || 0).getTime() / 1000000000;
+            const scoreB =
+              (b.stargazers_count || 0) * 3 +
+              new Date(b.updated_at || 0).getTime() / 1000000000;
             return scoreB - scoreA;
           });
         setRepos(filteredRepos);
+        // Reset image errors when repos change
+        setImageErrors({});
       } catch (error) {
         console.error('Error loading repositories:', error);
         setRepos([]);
@@ -43,6 +55,17 @@ const GitHubRepos = ({ isDarkMode }) => {
     };
 
     loadRepositories();
+  }, []);
+
+  // Memoize the error handler to prevent recreation on each render
+  const handleImageError = useCallback((repoId) => {
+    setImageErrors((prev) => {
+      // Only update if not already set to prevent re-renders
+      if (!prev[repoId]) {
+        return { ...prev, [repoId]: true };
+      }
+      return prev;
+    });
   }, []);
 
   const getLanguageColor = (language) => {
@@ -60,7 +83,7 @@ const GitHubRepos = ({ isDarkMode }) => {
       Go: '#00add8',
       Rust: '#dea584',
       Swift: '#fa7343',
-      Kotlin: '#0095d5'
+      Kotlin: '#0095d5',
     };
     return colors[language] || '#6c757d';
   };
@@ -70,10 +93,10 @@ const GitHubRepos = ({ isDarkMode }) => {
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return 'Invalid date';
-      return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
       });
     } catch (error) {
       console.warn('Error formatting date:', error);
@@ -105,7 +128,7 @@ const GitHubRepos = ({ isDarkMode }) => {
       >
         GitHub Repositories
       </motion.h4>
-      
+
       <motion.h2
         className="text-center text-5xl font-Ovo dark:text-white"
         initial={{ opacity: 0, y: -20 }}
@@ -121,8 +144,9 @@ const GitHubRepos = ({ isDarkMode }) => {
         transition={{ delay: 0.7, duration: 0.5 }}
         className="text-center max-w-2xl mx-auto mt-5 mb-12 font-Ovo dark:text-gray-300"
       >
-        Explore all my GitHub repositories showcasing various projects, experiments, and contributions. 
-        Each repository represents my journey in learning and building with different technologies.
+        Explore all my GitHub repositories showcasing various projects,
+        experiments, and contributions. Each repository represents my journey in
+        learning and building with different technologies.
       </motion.p>
 
       <motion.div
@@ -136,7 +160,7 @@ const GitHubRepos = ({ isDarkMode }) => {
             key={repo.id}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-50px" }}
+            viewport={{ once: true, margin: '-50px' }}
             transition={{ duration: 0.5, delay: 0.1 * Math.min(index, 6) }}
             whileHover={{ y: -5 }}
             className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300"
@@ -144,18 +168,16 @@ const GitHubRepos = ({ isDarkMode }) => {
             {/* Repository Image */}
             <div className="relative h-48 w-full bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-700 dark:to-gray-600 overflow-hidden">
               <Image
-                src={getRepoImage(repo)}
+                key={`repo-img-${repo.id}`}
+                src={
+                  imageErrors[repo.id] ? assets.code_icon : getRepoImage(repo)
+                }
                 alt={repo.name || 'Repository'}
                 width={400}
                 height={200}
                 className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                onError={(e) => {
-                  console.warn(`Failed to load image for repo: ${repo.name}. Using fallback.`);
-                  e.target.src = '/assets/project-icon.png';
-                }}
-                onLoad={() => {
-                  // Optional: Success callback
-                }}
+                unoptimized
+                onError={() => handleImageError(repo.id)}
               />
               <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300"></div>
               {repo.stargazers_count > 0 && (
@@ -171,16 +193,20 @@ const GitHubRepos = ({ isDarkMode }) => {
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-3 h-3 rounded-full bg-green-500"></div>
                 <h3 className="text-xl font-semibold dark:text-white truncate">
-                  {(repo.name || 'Unnamed Repository').replace(/-/g, ' ').replace(/_/g, ' ')}
+                  {(repo.name || 'Unnamed Repository')
+                    .replace(/-/g, ' ')
+                    .replace(/_/g, ' ')}
                 </h3>
               </div>
 
               <div className="flex items-center justify-between mb-4">
                 {repo.language && (
                   <div className="flex items-center gap-2">
-                    <div 
+                    <div
                       className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: getLanguageColor(repo.language) }}
+                      style={{
+                        backgroundColor: getLanguageColor(repo.language),
+                      }}
                     ></div>
                     <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
                       {repo.language}
@@ -196,14 +222,16 @@ const GitHubRepos = ({ isDarkMode }) => {
                 <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                   {repo.forks_count > 0 && (
                     <span className="flex items-center gap-1">
-                      <span className="text-blue-500">🔗</span> {repo.forks_count}
+                      <span className="text-blue-500">🔗</span>{' '}
+                      {repo.forks_count}
                     </span>
                   )}
                   <span className="flex items-center gap-1">
-                    <span className="text-green-500">👁️</span> {repo.watchers_count}
+                    <span className="text-green-500">👁️</span>{' '}
+                    {repo.watchers_count}
                   </span>
                 </div>
-                
+
                 <div className="flex gap-2">
                   <motion.a
                     href={repo.html_url}
@@ -215,12 +243,16 @@ const GitHubRepos = ({ isDarkMode }) => {
                   >
                     Code
                     <Image
-                      src={isDarkMode ? assets.right_arrow_white : assets.right_arrow}
+                      src={
+                        isDarkMode
+                          ? assets.right_arrow_white
+                          : assets.right_arrow
+                      }
                       alt="arrow"
                       className="w-3"
                     />
                   </motion.a>
-                  
+
                   {repo.homepage && (
                     <motion.a
                       href={repo.homepage}
@@ -238,17 +270,22 @@ const GitHubRepos = ({ isDarkMode }) => {
 
               {repo.topics && repo.topics.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-4">
-                  {repo.topics.slice(0, GITHUB_CONFIG.settings.maxTopicsPerRepo).map((topic) => (
-                    <span
-                      key={topic}
-                      className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium rounded-full"
-                    >
-                      {topic}
-                    </span>
-                  ))}
-                  {repo.topics.length > GITHUB_CONFIG.settings.maxTopicsPerRepo && (
+                  {repo.topics
+                    .slice(0, GITHUB_CONFIG.settings.maxTopicsPerRepo)
+                    .map((topic) => (
+                      <span
+                        key={topic}
+                        className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs font-medium rounded-full"
+                      >
+                        {topic}
+                      </span>
+                    ))}
+                  {repo.topics.length >
+                    GITHUB_CONFIG.settings.maxTopicsPerRepo && (
                     <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-medium rounded-full">
-                      +{repo.topics.length - GITHUB_CONFIG.settings.maxTopicsPerRepo}
+                      +
+                      {repo.topics.length -
+                        GITHUB_CONFIG.settings.maxTopicsPerRepo}
                     </span>
                   )}
                 </div>

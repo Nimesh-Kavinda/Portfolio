@@ -14,8 +14,10 @@ import { useEffect, useState } from "react";
 export default function Home() {
 
   const [isDarkMode, setDarkMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) &&
       window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       setDarkMode(true)
@@ -38,6 +40,11 @@ export default function Home() {
     }
 
   }, [isDarkMode])
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <>
