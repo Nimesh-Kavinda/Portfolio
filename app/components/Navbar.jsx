@@ -1,95 +1,158 @@
-import Image from 'next/image'
-import React, { useEffect, useRef, useState } from 'react'
-import { assets } from '../../assets/assets'
-import { motion } from "framer-motion";
+import Image from 'next/image';
+import React, { useEffect, useRef, useState } from 'react';
+import { assets } from '../../assets/assets';
+import { motion } from 'framer-motion';
 
 const Navbar = ({ isDarkMode, setDarkMode }) => {
-    const [isScroll, setIsScroll] = useState(false);
-    const sideMenuRef = useRef();
+  const [isScroll, setIsScroll] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-    const openMenu = () => {
-        sideMenuRef.current.style.transform = 'translateX(-16rem)';
-    };
+  const sideMenuRef = useRef();
 
-    const closeMenu = () => {
-        sideMenuRef.current.style.transform = 'translateX(16rem)';
-    };
+  useEffect(() => {
+    const onScroll = () => setIsScroll(window.scrollY > 60);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setIsScroll(window.scrollY > 50);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+  useEffect(() => {
+    sideMenuRef.current.style.transform = menuOpen
+      ? 'translateX(0)'
+      : 'translateX(100%)';
+  }, [menuOpen]);
 
-    return (
-        <>
-            {/* Background Overlay */}
-            <div className="fixed top-0 right-0 w-11/12 -z-10 translate-y-[-80%] 
-            dark:hidden">
-                <Image src={assets.header_bg_color} alt="Background" className="w-full" />
-            </div>
+  const links = [
+    { label: 'Home', href: '#top' },
+    { label: 'About', href: '#about' },
+    { label: 'Services', href: '#service' },
+    { label: 'Work', href: '#work' },
+    { label: 'GitHub', href: '#github-repos' },
+    { label: 'Contact', href: '#contact' },
+  ];
 
-            {/* Navbar */}
-            <nav className={`w-full fixed px-5 lg:px-8 xl:px-[8%] py-4 flex 
-            items-center justify-between z-50  
-             ${isScroll ? "bg-white bg-opacity-50 backdrop-blur-lg shadow-sm dark:bg-darkTheme dark:shadow-whit/20" : ""}`}>
+  return (
+    <>
+      {/* Background image (light mode only) */}
+      <div className="fixed top-0 right-0 w-11/12 -z-10 -translate-y-[80%] dark:hidden">
+        <Image
+          src={assets.header_bg_color}
+          alt="Background"
+          className="w-full"
+        />
+      </div>
 
-                {/* Logo */}
-                <motion.a href="#top"
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 0.5 }}
-                >
-                    <Image src={isDarkMode ? assets.logo_dark : assets.logo} alt="Logo" className="w-28 cursor-pointer mr-10 sm:mr-14" />
-                </motion.a>
+      {/* Navbar */}
+      <nav
+        className={`w-full fixed px-5 lg:px-8 xl:px-[8%] py-4 flex items-center justify-between z-50 transition-all duration-300
+        ${
+          isScroll
+            ? 'bg-white/60 dark:bg-darkTheme/80 backdrop-blur-lg shadow-sm'
+            : 'bg-transparent'
+        }`}
+      >
+        {/* Logo */}
+        <motion.a
+          href="#top"
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Image
+            src={isDarkMode ? assets.logo_dark : assets.logo}
+            alt="Logo"
+            className="w-28 cursor-pointer"
+          />
+        </motion.a>
 
-                {/* Navigation Links */}
-                <ul className={`hidden md:flex items-center gap-6 lg:gap-8  rounded-full
-                    px-12  py-3 ${isScroll ? "" : "bg-white shadow-sm bg-opacity-50 dark:border dark:border-white/50 dark:bg-transparent "}`}>
-                    <li><a className="font-Ovo text-lg sm:text-xl" href="#top">Home</a></li>
-                    <li><a className="font-Ovo text-lg sm:text-xl" href="#about">About</a></li>
-                    <li><a className="font-Ovo text-lg sm:text-xl" href="#service">Services</a></li>
-                    <li><a className="font-Ovo text-lg sm:text-xl" href="#work">Work</a></li>
-                    <li><a className="font-Ovo text-lg sm:text-xl" href="#github-repos">GitHub</a></li>
-                    <li><a className="font-Ovo text-lg sm:text-xl" href="#contact">Contact</a></li>
-                </ul>
+        {/* Desktop Links */}
+        <ul
+          className={`hidden md:flex items-center gap-7 lg:gap-10 rounded-full px-10 py-3
+            ${
+              isScroll
+                ? 'bg-white/30 dark:bg-transparent dark:border dark:border-white/20 backdrop-blur-xl'
+                : 'bg-white/40 dark:bg-transparent dark:border dark:border-white/20 backdrop-blur-xl'
+            }
+          `}
+        >
+          {links.map((link) => (
+            <li key={link.label}>
+              <a
+                href={link.href}
+                className="font-Ovo text-lg hover:text-primary transition"
+              >
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
 
-                {/* Right Section (Dark Mode & Contact Button) */}
-                <div className="flex items-center gap-4">
-                    <button onClick={() => setDarkMode(prev => !prev)}>
-                        <Image src={isDarkMode ? assets.sun_icon : assets.moon_icon} alt="Dark Mode" className="w-6" />
-                    </button>
+        {/* Right Controls */}
+        <div className="flex items-center gap-4">
+          {/* Theme Toggle */}
+          <button onClick={() => setDarkMode((p) => !p)}>
+            <Image
+              src={isDarkMode ? assets.sun_icon : assets.moon_icon}
+              alt="Theme"
+              className="w-6"
+            />
+          </button>
 
-                    <a href="#contact" className="hidden lg:flex items-center gap-3 px-10 py-2.5 border border-gray-500 rounded-full ml-4 font-Ovo dark:border-white/50 ">
-                        Contact <Image src={isDarkMode ? assets.arrow_icon_dark : assets.arrow_icon} alt="Arrow" className="w-3" />
-                    </a>
+          {/* Desktop Contact Button */}
+          <a
+            href="#contact"
+            className="hidden lg:flex items-center gap-3 px-8 py-2.5 border border-gray-400 dark:border-white/40 rounded-full font-Ovo group transition"
+          >
+            Contact
+            <Image
+              src={isDarkMode ? assets.arrow_icon_dark : assets.arrow_icon}
+              alt="Arrow"
+              className="w-3 group-hover:translate-x-1 transition"
+            />
+          </a>
 
-                    {/* Mobile Menu Button */}
-                    <button className="block md:hidden ml-3" onClick={openMenu}>
-                        <Image src={isDarkMode ? assets.menu_white : assets.menu_black} alt="Menu" className="w-6" />
-                    </button>
-                </div>
+          {/* Mobile Menu Button */}
+          <button className="block md:hidden" onClick={() => setMenuOpen(true)}>
+            <Image
+              src={isDarkMode ? assets.menu_white : assets.menu_black}
+              alt="menu"
+              className="w-6"
+            />
+          </button>
+        </div>
 
-                {/* Mobile Side Menu */}
-                <ul ref={sideMenuRef} className="flex md:hidden flex-col gap-4 py-20 px-10 fixed -right-64 top-0
-                 bottom-0 w-64 z-50 h-screen bg-rose-50 transition duration-500 dark:bg-darkHover dark:text-white">
-                    <div className="absolute right-6 top-6" onClick={closeMenu}>
-                        <Image src={isDarkMode ? assets.close_white : assets.close_black} alt="Close" className="w-5 cursor-pointer" />
-                    </div>
+        {/* Mobile Drawer */}
+        <ul
+          ref={sideMenuRef}
+          className="fixed top-0 right-0 w-64 h-screen z-[100] bg-rose-50 dark:bg-darkHover text-black dark:text-white
+          shadow-xl flex flex-col gap-6 px-10 py-20 transition-transform duration-300"
+        >
+          {/* Close */}
+          <button
+            className="absolute right-6 top-6"
+            onClick={() => setMenuOpen(false)}
+          >
+            <Image
+              src={isDarkMode ? assets.close_white : assets.close_black}
+              alt="close"
+              className="w-5"
+            />
+          </button>
 
-                    <li><a className="font-Ovo text-lg" onClick={closeMenu} href="#top">Home</a></li>
-                    <li><a className="font-Ovo text-lg" onClick={closeMenu} href="#about">About</a></li>
-                    <li><a className="font-Ovo text-lg" onClick={closeMenu} href="#service">Services</a></li>
-                    <li><a className="font-Ovo text-lg" onClick={closeMenu} href="#work">Work</a></li>
-                    <li><a className="font-Ovo text-lg" onClick={closeMenu} href="#github-repos">GitHub</a></li>
-                    <li><a className="font-Ovo text-lg" onClick={closeMenu} href="#contact">Contact</a></li>
-                </ul>
-            </nav>
-
-        </>
-    );
+          {links.map((link) => (
+            <li key={link.label}>
+              <a
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                className="font-Ovo text-lg block hover:text-primary transition"
+              >
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </>
+  );
 };
 
 export default Navbar;
